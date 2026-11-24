@@ -51,8 +51,31 @@ Without the permission the app still runs, the scroll simply goes through as
 well and keyboard brightness does nothing. Use the button in the app's settings
 to open the right pane of System Settings.
 
-The bundle is ad-hoc signed, so **every rebuild counts as a new app and has to
-be allowed again** in System Settings.
+## Signing
+
+macOS remembers a permission per code signature. The build script signs with a
+local certificate when one exists, which keeps the Accessibility grant across
+rebuilds; without it the app is signed ad-hoc and macOS treats every rebuild as
+a new app that has to be allowed again.
+
+One-time setup of the local certificate (it stays in
+`~/Library/Application Support/TrackControl/signing`):
+
+```sh
+DIR="$HOME/Library/Application Support/TrackControl/signing"
+mkdir -p "$DIR" && cd "$DIR"
+openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
+  -keyout key.pem -out cert.pem -subj "/CN=TrackControl Local Signing" \
+  -addext "basicConstraints=critical,CA:TRUE" \
+  -addext "keyUsage=critical,digitalSignature,keyCertSign" \
+  -addext "extendedKeyUsage=codeSigning"
+openssl pkcs12 -export -inkey key.pem -in cert.pem -out identity.p12 \
+  -passout pass:trackcontrol -name "TrackControl Local Signing"
+security import identity.p12 -k "$HOME/Library/Keychains/login.keychain-db" \
+  -P trackcontrol -T /usr/bin/codesign -A
+security add-trusted-cert -r trustRoot -p codeSign \
+  -k "$HOME/Library/Keychains/login.keychain-db" cert.pem
+```
 
 ## How it works
 
