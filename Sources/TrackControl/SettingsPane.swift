@@ -7,6 +7,8 @@ import TrackControlCore
 final class SettingsPane: NSView {
     private let settings: Settings
     private var popups: [TrackpadSide: NSPopUpButton] = [:]
+    private let zoneSlider = NSSlider()
+    private let zoneValue = NSTextField(labelWithString: "")
     private let accessibilityNotice = NSStackView()
     private let separator = NSBox()
 
@@ -36,6 +38,8 @@ final class SettingsPane: NSView {
             stack.addArrangedSubview(row(for: side))
         }
 
+        stack.addArrangedSubview(zoneRow())
+
         separator.boxType = .separator
         stack.addArrangedSubview(separator)
 
@@ -44,7 +48,7 @@ final class SettingsPane: NSView {
         accessibilityNotice.spacing = 6
 
         let noticeText = NSTextField(wrappingLabelWithString:
-            "Keyboard brightness needs Accessibility access, because it presses the brightness keys for you.")
+            "Accessibility access is needed to keep the window from scrolling while you swipe, and for keyboard brightness, which presses the brightness keys for you.")
         noticeText.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
         noticeText.textColor = .secondaryLabelColor
         noticeText.preferredMaxLayoutWidth = Layout.contentWidth
@@ -94,6 +98,40 @@ final class SettingsPane: NSView {
         return row
     }
 
+    private func zoneRow() -> NSView {
+        let label = NSTextField(labelWithString: "Edge zone")
+        label.widthAnchor.constraint(equalToConstant: Layout.labelWidth).isActive = true
+
+        zoneSlider.minValue = Double(Settings.edgeZoneRange.lowerBound * 100)
+        zoneSlider.maxValue = Double(Settings.edgeZoneRange.upperBound * 100)
+        zoneSlider.doubleValue = Double(settings.edgeZone * 100)
+        zoneSlider.isContinuous = true
+        zoneSlider.target = self
+        zoneSlider.action = #selector(zoneChanged(_:))
+        zoneSlider.toolTip = "How far from the edge two fingers have to start to control a setting."
+        zoneSlider.widthAnchor.constraint(equalToConstant: Layout.popupWidth - 40).isActive = true
+
+        zoneValue.stringValue = Self.percentLabel(settings.edgeZone)
+        zoneValue.textColor = .secondaryLabelColor
+        zoneValue.alignment = .right
+        zoneValue.widthAnchor.constraint(equalToConstant: 40).isActive = true
+
+        let row = NSStackView(views: [label, zoneSlider, zoneValue])
+        row.orientation = .horizontal
+        row.spacing = 12
+        return row
+    }
+
+    @objc private func zoneChanged(_ sender: NSSlider) {
+        let zone = Float(sender.doubleValue / 100)
+        settings.edgeZone = zone
+        zoneValue.stringValue = Self.percentLabel(settings.edgeZone)
+    }
+
+    private static func percentLabel(_ zone: Float) -> String {
+        "\(Int((zone * 100).rounded()))%"
+    }
+
     @objc private func actionChanged(_ sender: NSPopUpButton) {
         let sides = TrackpadSide.allCases
         guard sides.indices.contains(sender.tag) else { return }
@@ -109,10 +147,7 @@ final class SettingsPane: NSView {
     }
 
     private func refreshAccessibilityNotice() {
-        let needed = popups.values.contains { popup in
-            popup.titleOfSelectedItem == ControlAction.keyboardBrightness.title
-        }
-        let show = needed && !AccessibilityPermission.isGranted
+        let show = !AccessibilityPermission.isGranted
         separator.isHidden = !show
         accessibilityNotice.isHidden = !show
     }
