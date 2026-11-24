@@ -39,6 +39,17 @@ open build/TrackControl.app
 The script builds the package, assembles `build/TrackControl.app` and signs it.
 Copy it to `/Applications` if you want to keep it around.
 
+For a disk image to hand out:
+
+```sh
+./scripts/make-dmg.sh     # -> build/TrackControl-<version>.dmg
+```
+
+The version comes from `CFBundleShortVersionString` in `Resources/Info.plist`.
+The image contains an ad-hoc signed copy of the app, because the local
+development certificate is only trusted on the machine that made it. The
+development build in `build/` is left alone.
+
 ## Permissions
 
 Volume and display brightness work immediately. Two things need **Accessibility**
