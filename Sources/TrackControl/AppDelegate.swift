@@ -11,6 +11,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setUpStatusItem()
         Debug.log("accessibility granted: \(AccessibilityPermission.isGranted)")
 
+        // Blocking the scroll during a swipe needs Accessibility access, so ask
+        // for it once instead of silently doing less than expected.
+        if !AccessibilityPermission.isGranted {
+            AccessibilityPermission.request()
+        }
+
         if !monitor.start() {
             Debug.log("gesture monitor failed to start")
         }
