@@ -14,9 +14,11 @@ public enum Debug {
         return directory.appendingPathComponent("TrackControl.log")
     }()
 
-    public static func log(_ message: String) {
+    /// `@autoclosure` so the message is not even built when logging is off: the
+    /// call sites sit on the per-frame gesture path.
+    public static func log(_ message: @autoclosure () -> String) {
         guard isEnabled else { return }
-        let line = "[\(Date())] \(message)\n"
+        let line = "[\(Date())] \(message())\n"
         queue.async {
             if let handle = try? FileHandle(forWritingTo: url) {
                 defer { try? handle.close() }
