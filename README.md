@@ -75,9 +75,3 @@ swift run TrackControlSelfTest --system   # drives real volume/brightness change
 
 Set `TRACKCONTROL_DEBUG=1` in the environment to write frames and setting
 changes to `~/Library/Logs/TrackControl.log`.
-
-## Status
-
-Working: settings UI, per-edge mapping, adjustable edge zone, volume, display
-brightness, keyboard brightness, scroll blocking during a swipe (the last two
-after Accessibility access has been granted).
