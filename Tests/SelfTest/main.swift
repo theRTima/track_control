@@ -103,5 +103,69 @@ do {
     check(events.isEmpty, "three fingers are ignored")
 }
 
+// MARK: - Optional end-to-end checks against the real system
+// `swift run TrackControlSelfTest --system` feeds synthetic swipes through the
+// recognizer and the action runner, then reads the setting back from macOS.
+
+if CommandLine.arguments.contains("--system") {
+    print("\n-- system checks --")
+
+    // Volume: swipe up along the left edge and expect the output volume to rise.
+    if let before = VolumeControl.current() {
+        let settings = Settings(defaults: UserDefaults(suiteName: "TrackControlSystemCheck")!)
+        settings.set(.volume, for: .left)
+        let runner = ActionRunner(settings: settings)
+        let recognizer = EdgeSwipeRecognizer()
+        let start = min(before, 0.4)
+
+        // The runner reads the volume when the gesture begins, so set it first.
+        VolumeControl.set(start)
+        for event in recognizer.process([finger(0.05, 0.30), finger(0.07, 0.40)]) {
+            if case let .began(side) = event { runner.began(side: side) }
+        }
+        // Pretend the fingers travel 30% of the trackpad height upwards.
+        var y: Float = 0.30
+        for _ in 0..<5 {
+            y += 0.06
+            for event in recognizer.process([finger(0.05, y), finger(0.07, y + 0.10)]) {
+                if case let .changed(side, delta) = event { runner.changed(side: side, delta: delta) }
+            }
+        }
+        let after = VolumeControl.current() ?? -1
+        check(abs(after - (start + 0.30)) < 0.02, "volume rose by the swiped amount (start \(start) -> \(after))")
+        VolumeControl.set(before)
+
+    } else {
+        check(false, "volume is readable")
+    }
+
+    // Display brightness: same swipe, mapped to the right edge.
+    if let before = DisplayBrightnessControl.current(), before > 0.3 {
+        let settings = Settings(defaults: UserDefaults(suiteName: "TrackControlSystemCheck")!)
+        settings.set(.displayBrightness, for: .right)
+        let runner = ActionRunner(settings: settings)
+        let recognizer = EdgeSwipeRecognizer()
+
+        for event in recognizer.process([finger(0.95, 0.30), finger(0.97, 0.40)]) {
+            if case let .began(side) = event { runner.began(side: side) }
+        }
+        var y: Float = 0.30
+        for _ in 0..<3 {
+            y -= 0.06
+            for event in recognizer.process([finger(0.95, y), finger(0.97, y + 0.10)]) {
+                if case let .changed(side, delta) = event { runner.changed(side: side, delta: delta) }
+            }
+        }
+        let after = DisplayBrightnessControl.current() ?? -1
+        check(after < before - 0.02, "display brightness fell (start \(before) -> \(after))")
+        DisplayBrightnessControl.set(before)
+    } else {
+        check(false, "display brightness is readable")
+    }
+
+    print(counter.failures == 0 ? "system checks passed" : "\(counter.failures) system check(s) failed")
+    exit(counter.failures == 0 ? 0 : 1)
+}
+
 print(counter.failures == 0 ? "all checks passed" : "\(counter.failures) check(s) failed")
 exit(counter.failures == 0 ? 0 : 1)
