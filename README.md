@@ -36,8 +36,8 @@ Requires macOS 13 or newer and the Xcode Command Line Tools (`xcode-select
 open build/TrackControl.app
 ```
 
-The script builds the package and assembles `build/TrackControl.app`, ad-hoc
-signed. Copy it to `/Applications` if you want to keep it around.
+The script builds the package, assembles `build/TrackControl.app` and signs it.
+Copy it to `/Applications` if you want to keep it around.
 
 ## Permissions
 
