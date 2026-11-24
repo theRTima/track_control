@@ -21,6 +21,11 @@ edges, rightwards for the top and bottom edges) raises the value, swiping back
 lowers it. A swipe that covers a third of the edge changes the value by about a
 third.
 
+**Edge zone** in the settings window controls how close to an edge two fingers
+have to start, as a share of the trackpad (2% to 30%, 12% by default). While a
+swipe is running the app drops the scroll events that would otherwise scroll the
+window underneath.
+
 ## Build
 
 Requires macOS 13 or newer and the Xcode Command Line Tools (`xcode-select
@@ -36,11 +41,18 @@ signed. Copy it to `/Applications` if you want to keep it around.
 
 ## Permissions
 
-Volume and display brightness work immediately. Keyboard brightness presses the
-system illumination keys for you, which needs **Accessibility** access: open the
-app's settings, select "Keyboard brightness" for an edge, and use the button
-that appears. The setting is remembered for as long as the app bundle keeps its
-signature.
+Volume and display brightness work immediately. Two things need **Accessibility**
+access:
+
+- blocking the scroll that would otherwise reach the app you are working in;
+- keyboard brightness, which presses the illumination keys for you.
+
+Without the permission the app still runs, the scroll simply goes through as
+well and keyboard brightness does nothing. Use the button in the app's settings
+to open the right pane of System Settings.
+
+The bundle is ad-hoc signed, so **every rebuild counts as a new app and has to
+be allowed again** in System Settings.
 
 ## How it works
 
@@ -66,5 +78,6 @@ changes to `~/Library/Logs/TrackControl.log`.
 
 ## Status
 
-Working: switching, settings UI, persistence, volume, display brightness.
-Keyboard brightness needs Accessibility access to be granted before it works.
+Working: settings UI, per-edge mapping, adjustable edge zone, volume, display
+brightness, keyboard brightness, scroll blocking during a swipe (the last two
+after Accessibility access has been granted).
