@@ -16,9 +16,10 @@ public enum KeyboardBrightnessControl {
     public static func adjust(steps: Int) {
         guard steps != 0 else { return }
         guard AccessibilityPermission.isGranted else {
-            Debug.log("keyboard brightness: accessibility permission missing")
+            Debug.log("keyboard brightness: \(steps) step(s) dropped, accessibility permission missing")
             return
         }
+        Debug.log("keyboard brightness: \(steps) step(s)")
         let key = steps > 0 ? illuminationUp : illuminationDown
         for _ in 0..<abs(steps) {
             postKey(key)
