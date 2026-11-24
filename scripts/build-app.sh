@@ -1,11 +1,12 @@
 #!/bin/bash
-# Builds the Swift package and assembles TrackControl.app in ./build
+# Builds the Swift package and assembles TrackControl.app
+#   build/TrackControl.app by default, or $TRACKCONTROL_APP_DIR/TrackControl.app
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 swift build -c release
 
-APP="build/TrackControl.app"
+APP="${TRACKCONTROL_APP_DIR:-build}/TrackControl.app"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
 cp -f Resources/Info.plist "$APP/Contents/Info.plist"
@@ -13,9 +14,10 @@ cp -f .build/release/TrackControl "$APP/Contents/MacOS/TrackControl"
 # Drop local symbols: ~80 KB smaller, and the signature below covers the result.
 strip -x "$APP/Contents/MacOS/TrackControl"
 
-# Signing with a stable identity keeps the Accessibility permission across
-# rebuilds; ad-hoc signing gives every build a new identity and macOS forgets
-# the grant. See README for creating the local certificate.
+# Signing with a stable local identity keeps the Accessibility permission across
+# rebuilds; ad-hoc signing gives every build a new identity and macOS forgets the
+# grant. Set TRACKCONTROL_SIGN_IDENTITY to pick one explicitly, e.g. "-" to force
+# an ad-hoc signature.
 IDENTITY="${TRACKCONTROL_SIGN_IDENTITY:-}"
 if [ -z "$IDENTITY" ]; then
     IDENTITY=$(security find-identity -v -p codesigning 2>/dev/null \
