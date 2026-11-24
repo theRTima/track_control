@@ -7,6 +7,8 @@ import TrackControlCore
 final class SettingsPane: NSView {
     private let settings: Settings
     private var popups: [TrackpadSide: NSPopUpButton] = [:]
+    /// Called when the menu bar icon checkbox changes.
+    var onMenuBarIconChanged: ((Bool) -> Void)?
     private let zoneSlider = NSSlider()
     private let zoneValue = NSTextField(labelWithString: "")
     private let accessibilityNotice = NSStackView()
@@ -39,6 +41,7 @@ final class SettingsPane: NSView {
         }
 
         stack.addArrangedSubview(zoneRow())
+        stack.addArrangedSubview(menuBarIconCheckbox())
 
         separator.boxType = .separator
         stack.addArrangedSubview(separator)
@@ -120,6 +123,22 @@ final class SettingsPane: NSView {
         row.orientation = .horizontal
         row.spacing = 12
         return row
+    }
+
+    private func menuBarIconCheckbox() -> NSView {
+        let checkbox = NSButton(
+            checkboxWithTitle: "Show icon in the menu bar",
+            target: self,
+            action: #selector(menuBarIconToggled(_:))
+        )
+        checkbox.state = settings.showMenuBarIcon ? .on : .off
+        return checkbox
+    }
+
+    @objc private func menuBarIconToggled(_ sender: NSButton) {
+        let visible = sender.state == .on
+        settings.showMenuBarIcon = visible
+        onMenuBarIconChanged?(visible)
     }
 
     @objc private func zoneChanged(_ sender: NSSlider) {

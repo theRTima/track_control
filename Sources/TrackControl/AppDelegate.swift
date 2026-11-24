@@ -8,8 +8,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let monitor = GestureMonitor()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        setUpStatusItem()
+        applyMenuBarVisibility()
         Debug.log("accessibility granted: \(AccessibilityPermission.isGranted)")
+
+        // With no menu bar icon there is nothing to click, so launch into the
+        // settings window instead of an invisible process.
+        if statusItem == nil {
+            openSettings()
+        }
 
         // Blocking the scroll during a swipe needs Accessibility access, so ask
         // for it once instead of silently doing less than expected.
@@ -24,6 +30,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         monitor.stop()
+    }
+
+    /// Opening the running app again is the way back when the icon is hidden.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if statusItem == nil {
+            openSettings()
+        }
+        return true
+    }
+
+    private func applyMenuBarVisibility() {
+        if Settings.shared.showMenuBarIcon {
+            if statusItem == nil { setUpStatusItem() }
+        } else if let item = statusItem {
+            NSStatusBar.system.removeStatusItem(item)
+            statusItem = nil
+            Debug.log("menu bar icon hidden")
+        }
     }
 
     private func setUpStatusItem() {
@@ -57,6 +81,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func openSettings() {
         if settingsWindow == nil {
             let pane = SettingsPane()
+            pane.onMenuBarIconChanged = { [weak self] _ in self?.applyMenuBarVisibility() }
             let window = NSWindow(
                 contentRect: .zero,
                 styleMask: [.titled, .closable],

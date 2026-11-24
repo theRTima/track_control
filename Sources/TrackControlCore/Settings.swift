@@ -31,6 +31,16 @@ public final class Settings: @unchecked Sendable {
         }
     }
 
+    /// Whether the menu bar icon is shown. Hiding it also means the only way
+    /// back is opening the app again, which brings up the settings window.
+    public var showMenuBarIcon: Bool {
+        get { defaults.object(forKey: "showMenuBarIcon") as? Bool ?? true }
+        set {
+            defaults.set(newValue, forKey: "showMenuBarIcon")
+            NotificationCenter.default.post(name: .trackControlSettingsChanged, object: nil)
+        }
+    }
+
     public func action(for side: TrackpadSide) -> ControlAction {
         guard let raw = defaults.string(forKey: keyPrefix + side.rawValue),
               let action = ControlAction(rawValue: raw) else {
