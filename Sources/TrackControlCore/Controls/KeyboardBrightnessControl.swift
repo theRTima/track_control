@@ -11,8 +11,6 @@ public enum KeyboardBrightnessControl {
     /// macOS uses 16 hardware steps for the keyboard backlight.
     public static let stepCount = 16
 
-    public static var isAvailable: Bool { AccessibilityPermission.isGranted }
-
     public static func adjust(steps: Int) {
         guard steps != 0 else { return }
         guard AccessibilityPermission.isGranted else {

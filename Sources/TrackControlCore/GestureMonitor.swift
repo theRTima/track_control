@@ -15,8 +15,6 @@ public final class GestureMonitor: @unchecked Sendable {
     private var watchdog: DispatchSourceTimer?
 
     public private(set) var isRunning = false
-    /// Whether scroll wheel events are being swallowed during swipes.
-    public private(set) var suppressesScrolling = false
 
     public init(runner: ActionRunner = ActionRunner(), settings: Settings = .shared) {
         self.runner = runner
@@ -28,13 +26,14 @@ public final class GestureMonitor: @unchecked Sendable {
         applyEdgeZone()
 
         let suppressor = ScrollSuppressor(activity: activity)
-        suppressesScrolling = suppressor.start()
+        suppressor.start()
         self.suppressor = suppressor
 
         NotificationCenter.default.addObserver(
             forName: .trackControlSettingsChanged, object: nil, queue: nil
         ) { [weak self] _ in
-            self?.queue.async { self?.applyEdgeZone() }
+            guard let self else { return }
+            self.queue.async { self.applyEdgeZone() }
         }
 
         bridge.onFrame = { [weak self] points in
@@ -63,7 +62,6 @@ public final class GestureMonitor: @unchecked Sendable {
         MultitouchBridge.setCurrent(nil)
         suppressor?.stop()
         suppressor = nil
-        suppressesScrolling = false
         isRunning = false
     }
 

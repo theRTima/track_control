@@ -20,14 +20,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if !monitor.start() {
             Debug.log("gesture monitor failed to start")
         }
-
-        NotificationCenter.default.addObserver(
-            forName: .trackControlSettingsChanged,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.refreshIcon()
-        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -53,10 +45,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         item.menu = menu
         statusItem = item
-    }
-
-    private func refreshIcon() {
-        statusItem?.button?.image = Self.icon()
     }
 
     private static func icon() -> NSImage? {

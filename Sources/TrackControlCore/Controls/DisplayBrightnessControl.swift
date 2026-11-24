@@ -24,8 +24,6 @@ public enum DisplayBrightnessControl {
         )
     }()
 
-    public static var isAvailable: Bool { api != nil }
-
     public static func current() -> Float? {
         guard let api else { return nil }
         var value: Float = 0

@@ -1,4 +1,4 @@
-import CoreGraphics
+@preconcurrency import CoreGraphics
 import Foundation
 
 /// Drops scroll wheel events while an edge swipe is running, so adjusting the
@@ -45,7 +45,10 @@ public final class ScrollSuppressor: @unchecked Sendable {
         }
 
         self.tap = tap
-        let thread = Thread { [weak self] in self?.run(tap) }
+        let thread = Thread { [weak self] in
+            guard let self, let port = self.tap else { return }
+            self.run(port)
+        }
         thread.name = "TrackControl.ScrollTap"
         thread.start()
         Debug.log("scroll suppressor: running")
