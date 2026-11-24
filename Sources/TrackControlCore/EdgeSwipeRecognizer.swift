@@ -9,10 +9,14 @@ import Foundation
 public final class EdgeSwipeRecognizer: @unchecked Sendable {
     public struct Tuning: Sendable {
         /// Both fingers must start within this fraction of the trackpad from the edge.
-        public var startZone: Float = 0.10
+        public var startZone: Float = 0.12
+        /// At least one finger has to be this close to the edge. A two-finger
+        /// scroll that happens to start near an edge rarely touches it, which is
+        /// what keeps ordinary scrolling from changing settings.
+        public var edgeHug: Float = 0.05
         /// How far the fingers may drift away from the starting edge before the
         /// gesture is treated as an ordinary scroll instead.
-        public var driftLimit: Float = 0.35
+        public var driftLimit: Float = 0.15
 
         public init() {}
     }
@@ -82,11 +86,13 @@ public final class EdgeSwipeRecognizer: @unchecked Sendable {
         return [.cancelled]
     }
 
-    /// Both fingers must sit in the zone of the same edge; the closest edge wins.
+    /// Both fingers must sit in the zone of the same edge, and one of them must
+    /// hug the edge itself; the closest edge wins.
     private func commonEdge(of fingers: [TouchPoint]) -> TrackpadSide? {
         let a = nearestEdge(for: fingers[0])
         let b = nearestEdge(for: fingers[1])
         guard let a, let b, a.side == b.side else { return nil }
+        guard min(a.distance, b.distance) <= tuning.edgeHug else { return nil }
         return a.side
     }
 

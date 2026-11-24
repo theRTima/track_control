@@ -96,7 +96,21 @@ do {
     check(abs(totalDelta(events) - 0.10) < 0.001, "horizontal travel reported for top edge")
 }
 
-// 7. Three fingers are not our gesture.
+// 7. A scroll that starts near an edge but not on it is ignored.
+do {
+    let recognizer = EdgeSwipeRecognizer()
+    let events = run(recognizer, [finger(0.09, 0.30), finger(0.11, 0.45)])
+    check(events.isEmpty, "two fingers near but not on the edge are ignored")
+}
+
+// 8. One finger on the edge is enough even if the other sits further in.
+do {
+    let recognizer = EdgeSwipeRecognizer()
+    let events = run(recognizer, [finger(0.02, 0.30), finger(0.09, 0.45)])
+    check(events == [.began(side: .left)], "one finger hugging the edge starts the gesture")
+}
+
+// 9. Three fingers are not our gesture.
 do {
     let recognizer = EdgeSwipeRecognizer()
     let events = run(recognizer, [finger(0.05, 0.30), finger(0.05, 0.45), finger(0.06, 0.60)])
