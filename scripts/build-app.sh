@@ -10,6 +10,8 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
 cp -f Resources/Info.plist "$APP/Contents/Info.plist"
 cp -f .build/release/TrackControl "$APP/Contents/MacOS/TrackControl"
+# Drop local symbols: ~80 KB smaller, and the signature below covers the result.
+strip -x "$APP/Contents/MacOS/TrackControl"
 
 # Signing with a stable identity keeps the Accessibility permission across
 # rebuilds; ad-hoc signing gives every build a new identity and macOS forgets
