@@ -26,6 +26,9 @@ have to start, as a share of the trackpad (2% to 30%, 12% by default). While a
 swipe is running the app drops the scroll events that would otherwise scroll the
 window underneath.
 
+**Show icon in the menu bar** hides the status item. Opening the app again brings
+up its settings window, which is where the checkbox lives.
+
 ## Build
 
 Requires macOS 13 or newer and the Xcode Command Line Tools (`xcode-select
