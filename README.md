@@ -51,43 +51,20 @@ Without the permission the app still runs, the scroll simply goes through as
 well and keyboard brightness does nothing. Use the button in the app's settings
 to open the right pane of System Settings.
 
-## Signing
-
-macOS remembers a permission per code signature. The build script signs with a
-local certificate when one exists, which keeps the Accessibility grant across
-rebuilds; without it the app is signed ad-hoc and macOS treats every rebuild as
-a new app that has to be allowed again.
-
-One-time setup of the local certificate (it stays in
-`~/Library/Application Support/TrackControl/signing`):
-
-```sh
-DIR="$HOME/Library/Application Support/TrackControl/signing"
-mkdir -p "$DIR" && cd "$DIR"
-openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
-  -keyout key.pem -out cert.pem -subj "/CN=TrackControl Local Signing" \
-  -addext "basicConstraints=critical,CA:TRUE" \
-  -addext "keyUsage=critical,digitalSignature,keyCertSign" \
-  -addext "extendedKeyUsage=codeSigning"
-openssl pkcs12 -export -inkey key.pem -in cert.pem -out identity.p12 \
-  -passout pass:trackcontrol -name "TrackControl Local Signing"
-security import identity.p12 -k "$HOME/Library/Keychains/login.keychain-db" \
-  -P trackcontrol -T /usr/bin/codesign -A
-security add-trusted-cert -r trustRoot -p codeSign \
-  -k "$HOME/Library/Keychains/login.keychain-db" cert.pem
-```
-
 ## How it works
 
 - Trackpad contacts come from the private `MultitouchSupport.framework`, loaded
   at runtime (`MTDeviceCreateList` + `MTRegisterContactFrameCallbackWithRefcon`).
   Only the built-in trackpad is used, and only touching contacts.
-- `EdgeSwipeRecognizer` is a pure state machine: two fingers that start within
-  10% of the same edge and travel along it produce swipe deltas. Drifting away
-  from the edge cancels the gesture, so ordinary scrolling is left alone.
+- `EdgeSwipeRecognizer` is a pure state machine: two fingers that start inside
+  the edge zone (12% of the trackpad by default, adjustable in settings, one of
+  them within half of it) and travel along that edge produce swipe deltas.
+  Drifting away from the edge cancels the gesture.
 - `ActionRunner` applies the deltas: volume through CoreAudio on the default
   output device, display brightness through `DisplayServices`, keyboard
   backlight through the illumination media keys.
+- While a swipe runs, an event tap drops scroll events so the window underneath
+  stays put.
 
 ## Checks
 
