@@ -52,6 +52,8 @@ final class MultitouchBridge {
     private var startFn: StartFn?
     private var stopFn: StopFn?
     private var devices: [UnsafeMutableRawPointer] = []
+    /// Holds on to the device list for as long as the devices are used.
+    private var deviceList: CFArray?
 
     /// Receives the touching contacts of every frame.
     var onFrame: (([TouchPoint]) -> Void)?
@@ -80,12 +82,17 @@ final class MultitouchBridge {
         startFn = starter
         stopFn = stopper
 
-        let list = createList()?.takeRetainedValue() as? [Any] ?? []
+        let list = createList()?.takeRetainedValue()
+        deviceList = list
         let isBuiltIn: IsBuiltInFn? = Self.symbol(handle, "MTDeviceIsBuiltIn")
-        Debug.log("multitouch: \(list.count) device(s)")
+        let count = list.map { CFArrayGetCount($0) } ?? 0
+        Debug.log("multitouch: \(count) device(s)")
 
-        for entry in list {
-            let device = Unmanaged<AnyObject>.passUnretained(entry as AnyObject).toOpaque()
+        for index in 0..<count {
+            guard let list, let raw = CFArrayGetValueAtIndex(list, index) else { continue }
+            // A device reference is an opaque pointer: bridging it through
+            // `as AnyObject` yields a different pointer and MTDeviceStart fails.
+            let device = UnsafeMutableRawPointer(mutating: raw)
             if let isBuiltIn, !isBuiltIn(device) { continue }
             devices.append(device)
         }
@@ -108,6 +115,7 @@ final class MultitouchBridge {
             _ = stopFn?(device)
         }
         devices.removeAll()
+        deviceList = nil
     }
 
     private func handle(_ rawTouches: UnsafeMutableRawPointer?, count: Int) {
