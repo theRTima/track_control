@@ -13,6 +13,10 @@ settings — the open-source take on apps like Slidr. Each of the four edges
 can be mapped to a different setting, and the mapping is configurable from the
 app's settings window.
 
+<p align="center">
+  <img src="Resources/settings-window.png" width="520" alt="Track Control settings window">
+</p>
+
 Default mapping:
 
 | Edge   | Setting             |
@@ -62,13 +66,6 @@ The version comes from `CFBundleShortVersionString` in `Resources/Info.plist`.
 The image contains an ad-hoc signed copy of the app, because the local
 development certificate is only trusted on the machine that made it. The
 development build in `build/` is left alone.
-
-The app icon is drawn in code, so it can be redrawn at any size without a
-graphics editor:
-
-```sh
-swift scripts/make-icon.swift   # -> Resources/AppIcon.icns, Resources/AppIcon.png
-```
 
 ## Permissions
 
