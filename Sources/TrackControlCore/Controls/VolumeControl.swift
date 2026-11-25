@@ -3,6 +3,35 @@ import Foundation
 
 /// System volume of the current output device.
 public enum VolumeControl {
+    /// macOS moves the volume in 16 steps, and draws its HUD once per step.
+    public static let stepCount = 16
+
+    /// Turns the volume by whole steps through the system's own volume keys.
+    ///
+    /// Writing `kAudioDevicePropertyVolumeScalar` directly changes the level but
+    /// leaves the screen silent, and the system only shows the level it was told
+    /// about once, after the change is over. Pressing the keys instead is what
+    /// makes the HUD follow a swipe, one 1/16 step at a time — the same feedback
+    /// the brightness keys give.
+    public static func adjust(steps: Int) {
+        guard steps != 0 else { return }
+
+        guard AccessibilityPermission.isGranted else {
+            // No event posting: fall back to a direct write, which moves the
+            // level without the HUD.
+            let level = (current() ?? 0.5) + Float(steps) / Float(stepCount)
+            Debug.log("volume: \(steps) step(s) by direct write, accessibility permission missing")
+            set(level)
+            return
+        }
+
+        Debug.log("volume: \(steps) step(s)")
+        let key = steps > 0 ? MediaKeys.volumeUp : MediaKeys.volumeDown
+        for _ in 0..<abs(steps) {
+            MediaKeys.post(key)
+        }
+    }
+
     public static func current() -> Float? {
         guard let device = defaultOutputDevice() else { return nil }
         return getScalar(device, selector: kAudioDevicePropertyVolumeScalar, element: 0)

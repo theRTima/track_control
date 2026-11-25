@@ -20,28 +20,8 @@ public enum KeyboardBrightnessControl {
         Debug.log("keyboard brightness: \(steps) step(s)")
         let key = steps > 0 ? illuminationUp : illuminationDown
         for _ in 0..<abs(steps) {
-            postKey(key)
+            MediaKeys.post(key)
             usleep(30_000)
-        }
-    }
-
-    /// Posts one press+release of a system-defined media key.
-    private static func postKey(_ key: Int32) {
-        for pressed in [true, false] {
-            let flags = NSEvent.ModifierFlags(rawValue: pressed ? 0xA00 : 0xB00)
-            let data1 = Int((key << 16) | Int32(pressed ? 0x0A00 : 0x0B00))
-            guard let event = NSEvent.otherEvent(
-                with: .systemDefined,
-                location: .zero,
-                modifierFlags: flags,
-                timestamp: ProcessInfo.processInfo.systemUptime,
-                windowNumber: 0,
-                context: nil,
-                subtype: 8,
-                data1: data1,
-                data2: -1
-            ) else { continue }
-            event.cgEvent?.post(tap: .cghidEventTap)
         }
     }
 }

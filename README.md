@@ -53,13 +53,22 @@ The image contains an ad-hoc signed copy of the app, because the local
 development certificate is only trusted on the machine that made it. The
 development build in `build/` is left alone.
 
+The app icon is drawn in code, so it can be redrawn at any size without a
+graphics editor:
+
+```sh
+swift scripts/make-icon.swift   # -> Resources/AppIcon.icns, build/icon-1024.png
+```
+
 ## Permissions
 
 Volume and display brightness work immediately. Two things need **Accessibility**
 access:
 
 - blocking the scroll that would otherwise reach the app you are working in;
-- keyboard brightness, which presses the illumination keys for you.
+- pressing the media keys, which is how volume and keyboard brightness move:
+  without the permission the volume is written directly instead, so it still
+  changes but the system HUD does not follow the swipe.
 
 Without the permission the app still runs, the scroll simply goes through as
 well and keyboard brightness does nothing. Use the button in the app's settings
@@ -74,9 +83,11 @@ to open the right pane of System Settings.
   the edge zone (12% of the trackpad by default, adjustable in settings, one of
   them within half of it) and travel along that edge produce swipe deltas.
   Drifting away from the edge cancels the gesture.
-- `ActionRunner` applies the deltas: volume through CoreAudio on the default
-  output device, display brightness through `DisplayServices`, keyboard
-  backlight through the illumination media keys.
+- `ActionRunner` applies the deltas: display brightness through `DisplayServices`,
+  volume and keyboard backlight through the system's own media keys (the same
+  keys the Fn row presses), which is what makes macOS draw its HUD while you
+  swipe. Volume moves in the system's 16 steps, so the level appears gradually
+  instead of jumping to the final value.
 - While a swipe runs, an event tap drops scroll events so the window underneath
   stays put.
 

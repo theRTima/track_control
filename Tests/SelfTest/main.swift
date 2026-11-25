@@ -132,8 +132,11 @@ if CommandLine.arguments.contains("--system") {
         let recognizer = EdgeSwipeRecognizer()
         let start = min(before, 0.4)
 
-        // The runner reads the volume when the gesture begins, so set it first.
+        // The runner presses the system volume keys, and the system applies
+        // those asynchronously, so let the value settle before the swipe and
+        // give it a moment after.
         VolumeControl.set(start)
+        usleep(300_000)
         for event in recognizer.process([finger(0.05, 0.30), finger(0.07, 0.40)]) {
             if case let .began(side) = event { runner.began(side: side) }
         }
@@ -145,8 +148,15 @@ if CommandLine.arguments.contains("--system") {
                 if case let .changed(side, delta) = event { runner.changed(side: side, delta: delta) }
             }
         }
+        usleep(500_000)
         let after = VolumeControl.current() ?? -1
-        check(abs(after - (start + 0.30)) < 0.02, "volume rose by the swiped amount (start \(start) -> \(after))")
+        // The volume moves in whole steps now, so the swiped amount is only
+        // matched to the nearest step.
+        let oneStep = 1 / Float(VolumeControl.stepCount)
+        check(
+            abs(after - (start + 0.30)) < oneStep,
+            "volume rose by the swiped amount in steps (start \(start) -> \(after))"
+        )
         VolumeControl.set(before)
 
     } else {
@@ -154,11 +164,16 @@ if CommandLine.arguments.contains("--system") {
     }
 
     // Display brightness: same swipe, mapped to the right edge.
-    if let before = DisplayBrightnessControl.current(), before > 0.3 {
+    if let before = DisplayBrightnessControl.current() {
         let settings = Settings(defaults: UserDefaults(suiteName: "TrackControlSystemCheck")!)
         settings.set(.displayBrightness, for: .right)
         let runner = ActionRunner(settings: settings)
         let recognizer = EdgeSwipeRecognizer()
+
+        // Start from a level with room to fall, so the check also works when
+        // the display happens to be dim already.
+        let start = max(before, 0.6)
+        DisplayBrightnessControl.set(start)
 
         for event in recognizer.process([finger(0.95, 0.30), finger(0.97, 0.40)]) {
             if case let .began(side) = event { runner.began(side: side) }
@@ -171,7 +186,7 @@ if CommandLine.arguments.contains("--system") {
             }
         }
         let after = DisplayBrightnessControl.current() ?? -1
-        check(after < before - 0.02, "display brightness fell (start \(before) -> \(after))")
+        check(after < start - 0.02, "display brightness fell (start \(start) -> \(after))")
         DisplayBrightnessControl.set(before)
     } else {
         check(false, "display brightness is readable")

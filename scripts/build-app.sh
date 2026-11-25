@@ -10,6 +10,7 @@ APP="${TRACKCONTROL_APP_DIR:-build}/TrackControl.app"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
 cp -f Resources/Info.plist "$APP/Contents/Info.plist"
+cp -f Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 cp -f .build/release/TrackControl "$APP/Contents/MacOS/TrackControl"
 # Drop local symbols: ~80 KB smaller, and the signature below covers the result.
 strip -x "$APP/Contents/MacOS/TrackControl"

@@ -23,30 +23,30 @@ public final class ActionRunner: @unchecked Sendable {
         guard action != .none else { return }
 
         switch action {
-        case .volume:
-            value = VolumeControl.current() ?? 0.5
         case .displayBrightness:
             value = DisplayBrightnessControl.current() ?? 0.5
-        case .keyboardBrightness, .none:
+        case .volume, .keyboardBrightness, .none:
+            // These move in whole steps, so there is no value to remember: the
+            // system does the counting.
             value = 0
         }
-        Debug.log("gesture began on \(side.rawValue) -> \(action.rawValue) (current \(value))")
+        Debug.log("gesture began on \(side.rawValue) -> \(action.rawValue)")
     }
 
     public func changed(side: TrackpadSide, delta: Float) {
         guard side == self.side, action != .none else { return }
 
         switch action {
-        case .volume, .displayBrightness:
+        case .displayBrightness:
             value = min(max(value + delta * sensitivity, 0), 1)
-            apply(value)
+            DisplayBrightnessControl.set(value)
+            Debug.log("display brightness = \(value)")
+
+        case .volume:
+            steps(delta, stepCount: VolumeControl.stepCount, apply: VolumeControl.adjust(steps:))
 
         case .keyboardBrightness:
-            carriedSteps += delta * sensitivity * Float(KeyboardBrightnessControl.stepCount)
-            let whole = carriedSteps.rounded(.towardZero)
-            guard whole != 0 else { return }
-            carriedSteps -= whole
-            KeyboardBrightnessControl.adjust(steps: Int(whole))
+            steps(delta, stepCount: KeyboardBrightnessControl.stepCount, apply: KeyboardBrightnessControl.adjust(steps:))
 
         case .none:
             break
@@ -59,15 +59,13 @@ public final class ActionRunner: @unchecked Sendable {
         carriedSteps = 0
     }
 
-    private func apply(_ newValue: Float) {
-        switch action {
-        case .volume:
-            VolumeControl.set(newValue)
-        case .displayBrightness:
-            DisplayBrightnessControl.set(newValue)
-        default:
-            break
-        }
-        Debug.log("\(action.rawValue) = \(newValue)")
+    /// Converts swipe travel into whole steps, keeping the fraction for the
+    /// frames that are too short to fill a step on their own.
+    private func steps(_ delta: Float, stepCount: Int, apply: (Int) -> Void) {
+        carriedSteps += delta * sensitivity * Float(stepCount)
+        let whole = carriedSteps.rounded(.towardZero)
+        guard whole != 0 else { return }
+        carriedSteps -= whole
+        apply(Int(whole))
     }
 }
