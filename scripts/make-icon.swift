@@ -160,6 +160,7 @@ try iconutil.run()
 iconutil.waitUntilExit()
 guard iconutil.terminationStatus == 0 else { fatalError("iconutil failed") }
 
-// A 1024 px preview, handy when tweaking the drawing.
-try write(render(size: 1024)!, to: root.appendingPathComponent("build/icon-1024.png"))
+// A 1024 px copy lives next to the icns: the README shows it and it is the
+// easiest way to look at the drawing when tweaking it.
+try write(render(size: 1024)!, to: resources.appendingPathComponent("AppIcon.png"))
 print("wrote \(icns.path)")

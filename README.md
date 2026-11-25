@@ -1,6 +1,12 @@
-# track_control
+<p align="center">
+  <img src="Resources/AppIcon.png" width="200" alt="Track Control">
+</p>
 
-App for controlling stuff on your Mac with the trackpad.
+<h1 align="center">Track Control</h1>
+
+<p align="center">
+  Volume, display brightness and keyboard backlight, from the four edges of your trackpad.
+</p>
 
 Two-finger swipes along the edges of the MacBook trackpad control system
 settings — the open-source take on apps like Slidr. Each of the four edges
@@ -37,10 +43,14 @@ Requires macOS 13 or newer and the Xcode Command Line Tools (`xcode-select
 ```sh
 ./scripts/build-app.sh
 open build/TrackControl.app
+
+# to keep it as your everyday app:
+ditto build/TrackControl.app /Applications/TrackControl.app
 ```
 
-The script builds the package, assembles `build/TrackControl.app` and signs it.
-Copy it to `/Applications` if you want to keep it around.
+The script builds the package, assembles `build/TrackControl.app` and signs it
+with the local signing identity, so the Accessibility grant survives rebuilds
+and the app can be replaced or moved without granting it again.
 
 For a disk image to hand out:
 
@@ -57,7 +67,7 @@ The app icon is drawn in code, so it can be redrawn at any size without a
 graphics editor:
 
 ```sh
-swift scripts/make-icon.swift   # -> Resources/AppIcon.icns, build/icon-1024.png
+swift scripts/make-icon.swift   # -> Resources/AppIcon.icns, Resources/AppIcon.png
 ```
 
 ## Permissions
