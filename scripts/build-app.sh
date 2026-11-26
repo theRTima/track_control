@@ -4,7 +4,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-swift build -c release
+# Universal: the binary runs on Apple silicon and on Intel Macs.
+swift build -c release --arch arm64 --arch x86_64
 
 APP="${TRACKCONTROL_APP_DIR:-build}/TrackControl.app"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"

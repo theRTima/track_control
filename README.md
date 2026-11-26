@@ -41,8 +41,14 @@ up its settings window, which is where the checkbox lives.
 
 ## Build
 
-Requires macOS 13 or newer and the Xcode Command Line Tools (`xcode-select
---install`); a full Xcode install is not needed.
+Requires macOS 14 or newer and the Xcode Command Line Tools (`xcode-select
+--install`); a full Xcode install is not needed. `scripts/build-app.sh` builds a
+universal binary (arm64 + x86_64), so the same app runs on Intel Macs.
+
+The SDK that ships with macOS 27 marks the x86_64 slice as deprecated, and its
+Swift compatibility archive has no x86_64 slice, so linking for Intel prints one
+`x86_64 architecture is deprecated` warning. It is expected: the app still links
+and runs. Building against `MacOSX26.5.sdk` silences it.
 
 ```sh
 ./scripts/build-app.sh

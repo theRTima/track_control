@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "TrackControl",
-    platforms: [.macOS(.v13)],
+    platforms: [.macOS(.v14)],
     products: [
         .executable(name: "TrackControl", targets: ["TrackControl"]),
         .library(name: "TrackControlCore", targets: ["TrackControlCore"]),
