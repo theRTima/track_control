@@ -95,16 +95,16 @@ public final class EdgeSwipeRecognizer: @unchecked Sendable {
 
     private func nearestEdge(_ point: TouchPoint) -> (side: TrackpadSide, distance: Float)? {
         var best: (side: TrackpadSide, distance: Float)?
-        for (side, distance) in [
-            (TrackpadSide.left, point.x),
-            (.right, 1 - point.x),
-            (.bottom, point.y),
-            (.top, 1 - point.y),
-        ] where (0...tuning.startZone).contains(distance) {
+        func consider(_ side: TrackpadSide, _ distance: Float) {
+            guard (0...tuning.startZone).contains(distance) else { return }
             if best.map({ distance < $0.distance }) ?? true {
                 best = (side, distance)
             }
         }
+        consider(.left, point.x)
+        consider(.right, 1 - point.x)
+        consider(.bottom, point.y)
+        consider(.top, 1 - point.y)
         return best
     }
 

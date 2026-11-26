@@ -119,17 +119,14 @@ final class MultitouchBridge {
     }
 
     private func handle(_ rawTouches: UnsafeMutableRawPointer?, count: Int) {
-        guard count > 0, let rawTouches else {
-            onFrame?([])
-            return
-        }
-        let touches = rawTouches.assumingMemoryBound(to: MTTouch.self)
         var points: [TouchPoint] = []
-        points.reserveCapacity(count)
-        for index in 0..<count {
-            let touch = touches[index]
-            guard Self.touchStates.contains(touch.state) else { continue }
-            points.append(TouchPoint(x: touch.normalized.position.x, y: touch.normalized.position.y))
+        if count > 0, let rawTouches {
+            let touches = rawTouches.assumingMemoryBound(to: MTTouch.self)
+            points.reserveCapacity(count)
+            for index in 0..<count where Self.touchStates.contains(touches[index].state) {
+                let position = touches[index].normalized.position
+                points.append(TouchPoint(x: position.x, y: position.y))
+            }
         }
         onFrame?(points)
     }

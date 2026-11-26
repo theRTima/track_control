@@ -71,6 +71,7 @@ public final class ScrollSuppressor: @unchecked Sendable {
             CGEvent.tapEnable(tap: tap, enable: false)
         }
         tap = nil
+        runLoop = nil
     }
 
     private func run(_ tap: CFMachPort) {

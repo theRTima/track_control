@@ -4,9 +4,6 @@ import Foundation
 public final class ActionRunner: @unchecked Sendable {
     private let settings: Settings
 
-    /// Fraction of a trackpad edge length that covers the whole setting range.
-    public var sensitivity: Float = 1.0
-
     private var side: TrackpadSide?
     private var action: ControlAction = .none
     private var value: Float = 0
@@ -33,7 +30,7 @@ public final class ActionRunner: @unchecked Sendable {
 
         switch action {
         case .displayBrightness:
-            value = min(max(value + delta * sensitivity, 0), 1)
+            value = min(max(value + delta, 0), 1)
             DisplayBrightnessControl.set(value)
             Debug.log("display brightness = \(value)")
 
@@ -57,7 +54,7 @@ public final class ActionRunner: @unchecked Sendable {
     /// Converts swipe travel into whole steps, keeping the fraction for the
     /// frames that are too short to fill a step on their own.
     private func steps(_ delta: Float, stepCount: Int, apply: (Int) -> Void) {
-        carriedSteps += delta * sensitivity * Float(stepCount)
+        carriedSteps += delta * Float(stepCount)
         let whole = carriedSteps.rounded(.towardZero)
         guard whole != 0 else { return }
         carriedSteps -= whole

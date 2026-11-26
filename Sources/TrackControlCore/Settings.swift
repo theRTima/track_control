@@ -36,10 +36,7 @@ public final class Settings: @unchecked Sendable {
     /// back is opening the app again, which brings up the settings window.
     public var showMenuBarIcon: Bool {
         get { defaults.object(forKey: menuBarIconKey) as? Bool ?? true }
-        set {
-            defaults.set(newValue, forKey: menuBarIconKey)
-            NotificationCenter.default.post(name: .trackControlSettingsChanged, object: nil)
-        }
+        set { defaults.set(newValue, forKey: menuBarIconKey) }
     }
 
     public func action(for side: TrackpadSide) -> ControlAction {

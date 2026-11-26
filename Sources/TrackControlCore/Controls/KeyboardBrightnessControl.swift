@@ -10,6 +10,10 @@ public enum KeyboardBrightnessControl {
     /// macOS uses 16 hardware steps for the keyboard backlight.
     public static let stepCount = 16
 
+    /// Spaced-out key presses take up to half a second, so they run on their own
+    /// queue: the gesture queue must not wait for them.
+    private static let queue = DispatchQueue(label: "TrackControl.KeyboardBrightness")
+
     public static func adjust(steps: Int) {
         guard steps != 0 else { return }
         guard AccessibilityPermission.isGranted else {
@@ -18,9 +22,12 @@ public enum KeyboardBrightnessControl {
         }
         Debug.log("keyboard brightness: \(steps) step(s)")
         let key = steps > 0 ? illuminationUp : illuminationDown
-        for _ in 0..<abs(steps) {
-            MediaKeys.post(key)
-            usleep(30_000)
+        let count = abs(steps)
+        queue.async {
+            for _ in 0..<count {
+                MediaKeys.post(key)
+                usleep(30_000)
+            }
         }
     }
 }
