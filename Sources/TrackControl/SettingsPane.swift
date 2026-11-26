@@ -19,6 +19,10 @@ final class SettingsPane: NSView {
         super.init(frame: .zero)
         build()
         refreshAccessibilityNotice()
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(appDidBecomeActive),
+            name: NSApplication.didBecomeActiveNotification, object: nil
+        )
     }
 
     @available(*, unavailable)
@@ -88,10 +92,10 @@ final class SettingsPane: NSView {
             item.representedObject = action.rawValue
             popup.menu?.addItem(item)
         }
-        popup.selectItem(withTitle: settings.action(for: side).title)
+        let current = settings.action(for: side).rawValue
+        popup.select(popup.itemArray.first { ($0.representedObject as? String) == current })
         popup.target = self
         popup.action = #selector(actionChanged(_:))
-        popup.tag = TrackpadSide.allCases.firstIndex(of: side) ?? 0
         popup.widthAnchor.constraint(equalToConstant: Layout.popupWidth).isActive = true
         popups[side] = popup
 
@@ -152,11 +156,20 @@ final class SettingsPane: NSView {
     }
 
     @objc private func actionChanged(_ sender: NSPopUpButton) {
-        let sides = TrackpadSide.allCases
-        guard sides.indices.contains(sender.tag) else { return }
-        let side = sides[sender.tag]
-        let action = ControlAction.allCases.first { $0.title == sender.titleOfSelectedItem } ?? .none
+        guard let raw = sender.selectedItem?.representedObject as? String,
+              let action = ControlAction(rawValue: raw),
+              let side = popups.first(where: { $0.value === sender })?.key
+        else { return }
         settings.set(action, for: side)
+        // Picking a setting that presses keys is the moment the permission is
+        // actually needed; until then nothing is asked for.
+        if action.needsAccessibility, !AccessibilityPermission.isGranted {
+            AccessibilityPermission.request()
+        }
+        refreshAccessibilityNotice()
+    }
+
+    @objc private func appDidBecomeActive() {
         refreshAccessibilityNotice()
     }
 

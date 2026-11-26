@@ -20,15 +20,10 @@ public final class ActionRunner: @unchecked Sendable {
         self.side = side
         action = settings.action(for: side)
         carriedSteps = 0
-        guard action != .none else { return }
-
-        switch action {
-        case .displayBrightness:
+        // Only brightness is absolute. Volume and keyboard brightness move in
+        // whole steps, so the system keeps the value.
+        if action == .displayBrightness {
             value = DisplayBrightnessControl.current() ?? 0.5
-        case .volume, .keyboardBrightness, .none:
-            // These move in whole steps, so there is no value to remember: the
-            // system does the counting.
-            value = 0
         }
         Debug.log("gesture began on \(side.rawValue) -> \(action.rawValue)")
     }

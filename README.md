@@ -77,9 +77,15 @@ access:
   without the permission the volume is written directly instead, so it still
   changes but the system HUD does not follow the swipe.
 
+Nothing is asked for at launch. The system prompt appears only when you choose
+Volume or Keyboard brightness for an edge — the two settings that press keys —
+or when you click the button in the app's settings window, which opens the right
+pane of System Settings. Display brightness and the gestures themselves need no
+permission at all.
+
 Without the permission the app still runs, the scroll simply goes through as
-well and keyboard brightness does nothing. Use the button in the app's settings
-to open the right pane of System Settings.
+well and keyboard brightness does nothing. A grant made while the app is running
+takes effect as soon as you come back to the app.
 
 ## How it works
 

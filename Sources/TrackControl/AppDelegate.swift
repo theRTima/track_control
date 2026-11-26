@@ -17,12 +17,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             openSettings()
         }
 
-        // Blocking the scroll during a swipe needs Accessibility access, so ask
-        // for it once instead of silently doing less than expected.
-        if !AccessibilityPermission.isGranted {
-            AccessibilityPermission.request()
-        }
-
         if !monitor.start() {
             Debug.log("gesture monitor failed to start")
         }
@@ -30,6 +24,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         monitor.stop()
+    }
+
+    /// Returning from System Settings is how a grant arrives; pick it up without
+    /// asking for anything up front.
+    func applicationDidBecomeActive(_ notification: Notification) {
+        monitor.refreshScrollSuppression()
     }
 
     /// Opening the running app again is the way back when the icon is hidden.

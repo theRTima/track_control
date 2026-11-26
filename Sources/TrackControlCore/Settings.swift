@@ -8,6 +8,7 @@ public final class Settings: @unchecked Sendable {
     private let defaults: UserDefaults
     private let keyPrefix = "action."
     private let edgeZoneKey = "edgeZone"
+    private let menuBarIconKey = "showMenuBarIcon"
 
     /// Fraction of the trackpad that counts as "on the edge", 0.02...0.30.
     public static let defaultEdgeZone: Float = 0.12
@@ -34,9 +35,9 @@ public final class Settings: @unchecked Sendable {
     /// Whether the menu bar icon is shown. Hiding it also means the only way
     /// back is opening the app again, which brings up the settings window.
     public var showMenuBarIcon: Bool {
-        get { defaults.object(forKey: "showMenuBarIcon") as? Bool ?? true }
+        get { defaults.object(forKey: menuBarIconKey) as? Bool ?? true }
         set {
-            defaults.set(newValue, forKey: "showMenuBarIcon")
+            defaults.set(newValue, forKey: menuBarIconKey)
             NotificationCenter.default.post(name: .trackControlSettingsChanged, object: nil)
         }
     }

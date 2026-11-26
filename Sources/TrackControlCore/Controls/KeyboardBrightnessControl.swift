@@ -1,5 +1,4 @@
 import AppKit
-import ApplicationServices
 import Foundation
 
 /// Keyboard backlight is only reachable through the media keys: the HID device
@@ -23,21 +22,5 @@ public enum KeyboardBrightnessControl {
             MediaKeys.post(key)
             usleep(30_000)
         }
-    }
-}
-
-/// Accessibility ("post events") permission used for the media keys.
-public enum AccessibilityPermission {
-    public static var isGranted: Bool {
-        AXIsProcessTrusted()
-    }
-
-    /// Asks macOS to show the "add Track Control to Accessibility" prompt.
-    @discardableResult
-    public static func request() -> Bool {
-        // "AXTrustedCheckOptionPrompt" is the documented value of
-        // kAXTrustedCheckOptionPrompt, which is a global var Swift 6 refuses to read here.
-        let options = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
-        return AXIsProcessTrustedWithOptions(options)
     }
 }

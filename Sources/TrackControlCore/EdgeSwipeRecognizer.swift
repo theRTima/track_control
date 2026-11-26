@@ -34,6 +34,8 @@ public final class EdgeSwipeRecognizer: @unchecked Sendable {
 
     public func reset() {
         activeSide = nil
+        lastAlong = 0
+        anchorPerpendicular = 0
         waitingForRelease = false
     }
 
@@ -43,30 +45,28 @@ public final class EdgeSwipeRecognizer: @unchecked Sendable {
             waitingForRelease = false
             return finish()
         }
-        guard !waitingForRelease else { return finish() }
+        // A finished gesture ignores the rest of its own frames until release.
+        guard !waitingForRelease else { return [] }
+        guard fingers.count == 2 else { return activeSide == nil ? [] : cancel() }
+
+        let (first, second) = (fingers[0], fingers[1])
 
         if let side = activeSide {
-            guard fingers.count == 2 else { return cancel() }
-
-            let along = mean(fingers.map { alongPosition(of: side, $0) })
-            let perpendicular = mean(fingers.map { perpendicularPosition(of: side, $0) })
-
+            let along = (alongPosition(of: side, first) + alongPosition(of: side, second)) / 2
+            let perpendicular = (perpendicularPosition(of: side, first) + perpendicularPosition(of: side, second)) / 2
             guard abs(perpendicular - anchorPerpendicular) <= tuning.driftLimit else {
                 return cancel()
             }
 
             let delta = along - lastAlong
             lastAlong = along
-            guard delta != 0 else { return [] }
-            return [.changed(side: side, delta: delta)]
+            return delta == 0 ? [] : [.changed(side: side, delta: delta)]
         }
 
-        guard fingers.count == 2 else { return [] }
-        guard let side = commonEdge(of: fingers) else { return [] }
-
+        guard let side = commonEdge(first, second) else { return [] }
         activeSide = side
-        lastAlong = mean(fingers.map { alongPosition(of: side, $0) })
-        anchorPerpendicular = mean(fingers.map { perpendicularPosition(of: side, $0) })
+        lastAlong = alongPosition(of: side, first) / 2 + alongPosition(of: side, second) / 2
+        anchorPerpendicular = perpendicularPosition(of: side, first) / 2 + perpendicularPosition(of: side, second) / 2
         return [.began(side: side)]
     }
 
@@ -88,25 +88,24 @@ public final class EdgeSwipeRecognizer: @unchecked Sendable {
 
     /// Both fingers must sit in the zone of the same edge, and one of them must
     /// hug the edge itself; the closest edge wins.
-    private func commonEdge(of fingers: [TouchPoint]) -> TrackpadSide? {
-        let a = nearestEdge(for: fingers[0])
-        let b = nearestEdge(for: fingers[1])
-        guard let a, let b, a.side == b.side else { return nil }
-        guard min(a.distance, b.distance) <= tuning.edgeHug else { return nil }
-        return a.side
+    private func commonEdge(_ first: TouchPoint, _ second: TouchPoint) -> TrackpadSide? {
+        guard let a = nearestEdge(first), let b = nearestEdge(second), a.side == b.side else { return nil }
+        return min(a.distance, b.distance) <= tuning.edgeHug ? a.side : nil
     }
 
-    private func nearestEdge(for point: TouchPoint) -> (side: TrackpadSide, distance: Float)? {
-        let candidates: [(TrackpadSide, Float)] = [
-            (.left, point.x),
+    private func nearestEdge(_ point: TouchPoint) -> (side: TrackpadSide, distance: Float)? {
+        var best: (side: TrackpadSide, distance: Float)?
+        for (side, distance) in [
+            (TrackpadSide.left, point.x),
             (.right, 1 - point.x),
             (.bottom, point.y),
             (.top, 1 - point.y),
-        ]
-        return candidates
-            .filter { $0.1 >= 0 && $0.1 <= tuning.startZone }
-            .min { $0.1 < $1.1 }
-            .map { (side: $0.0, distance: $0.1) }
+        ] where (0...tuning.startZone).contains(distance) {
+            if best.map({ distance < $0.distance }) ?? true {
+                best = (side, distance)
+            }
+        }
+        return best
     }
 
     /// Position measured along the edge; growing values mean "increase the setting".
@@ -125,10 +124,5 @@ public final class EdgeSwipeRecognizer: @unchecked Sendable {
         case .bottom: return point.y
         case .top: return 1 - point.y
         }
-    }
-
-    private func mean(_ values: [Float]) -> Float {
-        guard !values.isEmpty else { return 0 }
-        return values.reduce(0, +) / Float(values.count)
     }
 }

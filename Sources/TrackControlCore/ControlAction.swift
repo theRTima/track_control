@@ -1,7 +1,7 @@
 import Foundation
 
 /// The four trackpad edges a gesture can start from.
-public enum TrackpadSide: String, CaseIterable, Codable, Sendable {
+public enum TrackpadSide: String, CaseIterable, Sendable {
     case top
     case right
     case bottom
@@ -18,11 +18,17 @@ public enum TrackpadSide: String, CaseIterable, Codable, Sendable {
 }
 
 /// What a swipe along a trackpad edge controls.
-public enum ControlAction: String, CaseIterable, Codable, Sendable {
+public enum ControlAction: String, CaseIterable, Sendable {
     case none
     case volume
     case displayBrightness
     case keyboardBrightness
+
+    /// Volume and keyboard brightness are applied by posting the system media
+    /// keys, which is the only thing here that needs Accessibility permission.
+    public var needsAccessibility: Bool {
+        self == .volume || self == .keyboardBrightness
+    }
 
     public var title: String {
         switch self {

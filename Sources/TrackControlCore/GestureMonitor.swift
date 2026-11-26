@@ -13,6 +13,7 @@ public final class GestureMonitor: @unchecked Sendable {
     private var frameCounter = 0
     private var lastFrameTime = Date.distantPast
     private var watchdog: DispatchSourceTimer?
+    private var settingsObserver: NSObjectProtocol?
 
     public private(set) var isRunning = false
 
@@ -24,16 +25,13 @@ public final class GestureMonitor: @unchecked Sendable {
     @discardableResult
     public func start() -> Bool {
         applyEdgeZone()
+        startSuppressor()
 
-        let suppressor = ScrollSuppressor(activity: activity)
-        suppressor.start()
-        self.suppressor = suppressor
-
-        NotificationCenter.default.addObserver(
+        settingsObserver = NotificationCenter.default.addObserver(
             forName: .trackControlSettingsChanged, object: nil, queue: nil
         ) { [weak self] _ in
             guard let self else { return }
-            self.queue.async { self.applyEdgeZone() }
+            queue.async { self.applyEdgeZone() }
         }
 
         bridge.onFrame = { [weak self] points in
@@ -51,11 +49,25 @@ public final class GestureMonitor: @unchecked Sendable {
 
         MultitouchBridge.setCurrent(bridge)
         isRunning = bridge.start()
+        // Do not leave a timer, a tap thread and an observer behind on failure.
+        if !isRunning { stop() }
         Debug.log("gesture monitor running: \(isRunning)")
         return isRunning
     }
 
+    /// The event tap cannot be created before macOS grants Accessibility, so try
+    /// again once the app is active and the user has had a chance to grant it.
+    public func refreshScrollSuppression() {
+        guard isRunning else { return }
+        if suppressor == nil { startSuppressor() }
+        suppressor?.start()
+    }
+
     public func stop() {
+        if let settingsObserver {
+            NotificationCenter.default.removeObserver(settingsObserver)
+        }
+        settingsObserver = nil
         watchdog?.cancel()
         watchdog = nil
         bridge.stop()
@@ -63,6 +75,12 @@ public final class GestureMonitor: @unchecked Sendable {
         suppressor?.stop()
         suppressor = nil
         isRunning = false
+    }
+
+    private func startSuppressor() {
+        let suppressor = ScrollSuppressor(activity: activity)
+        suppressor.start()
+        self.suppressor = suppressor
     }
 
     private func applyEdgeZone() {
