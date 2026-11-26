@@ -4,8 +4,14 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-# Universal: the binary runs on Apple silicon and on Intel Macs.
-swift build -c release --arch arm64 --arch x86_64
+# Universal by default: one binary for Apple silicon and Intel Macs.
+# TRACKCONTROL_ARCHS picks slices instead, e.g. "arm64" for a single-arch bundle.
+ARCHS="${TRACKCONTROL_ARCHS:-arm64 x86_64}"
+ARCH_FLAGS=()
+for arch in $ARCHS; do
+    ARCH_FLAGS+=(--arch "$arch")
+done
+swift build -c release "${ARCH_FLAGS[@]}"
 
 APP="${TRACKCONTROL_APP_DIR:-build}/TrackControl.app"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"

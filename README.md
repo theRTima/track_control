@@ -62,14 +62,19 @@ The script builds the package, assembles `build/TrackControl.app` and signs it
 with the local signing identity, so the Accessibility grant survives rebuilds
 and the app can be replaced or moved without granting it again.
 
-For a disk image to hand out:
+For disk images to hand out:
 
 ```sh
-./scripts/make-dmg.sh     # -> build/TrackControl-<version>.dmg
+./scripts/make-dmg.sh     # -> build/TrackControl-<version>-arm64.dmg
+                          #    build/TrackControl-<version>-x86_64.dmg
 ```
 
+One image per architecture, so the download matches the Mac. Each holds a
+single-slice copy of the app, and the script refuses to finish if the bundle
+inside the image has the wrong slice or a signature that does not verify.
+
 The version comes from `CFBundleShortVersionString` in `Resources/Info.plist`.
-The image contains an ad-hoc signed copy of the app, because the local
+The images contain ad-hoc signed copies of the app, because the local
 development certificate is only trusted on the machine that made it. The
 development build in `build/` is left alone.
 
