@@ -5,6 +5,10 @@
 <h1 align="center">Track Control</h1>
 
 <p align="center">
+  <a href="README.ru.md">Русская версия</a>
+</p>
+
+<p align="center">
   Volume, display brightness and keyboard backlight, from the four edges of your trackpad.
 </p>
 
