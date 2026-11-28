@@ -1,3 +1,5 @@
+> **Branch `Multiplatform`** — planning only: the analysis of what running on Windows and Linux would take. No code here; the port itself lives on `windows` and `linux`.
+
 <p align="center">
   <img src="Resources/AppIcon.png" width="200" alt="Track Control">
 </p>
