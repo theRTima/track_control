@@ -1,3 +1,5 @@
+> **Branch `windows`** — Rust port for Windows: Precision Touchpad HID contacts, `SendInput` media keys, WMI brightness, `WH_MOUSE_LL` scroll hook.
+
 <p align="center">
   <img src="Resources/AppIcon.png" width="200" alt="Track Control">
 </p>
