@@ -1,3 +1,5 @@
+> **Branch `linux`** — Rust port for Linux: evdev MT-B contacts, sysfs brightness, PipeWire volume, StatusNotifierItem tray; scroll suppression on X11 only.
+
 <p align="center">
   <img src="Resources/AppIcon.png" width="200" alt="Track Control">
 </p>
