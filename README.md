@@ -1,3 +1,5 @@
+> **Branch `x64`** — Intel support: universal (arm64 + x86_64) build, one DMG per architecture, macOS 14 as the floor. Merged into `main` as 0.2.2.
+
 <p align="center">
   <img src="Resources/AppIcon.png" width="200" alt="Track Control">
 </p>
