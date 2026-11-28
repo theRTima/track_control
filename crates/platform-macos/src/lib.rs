@@ -1,6 +1,7 @@
 //! macOS backend: the same system calls the Swift app makes, behind the core's
 //! `Controls` trait.
 
+pub mod audio;
 pub mod multitouch;
 pub mod scroll;
 pub mod system;
@@ -73,6 +74,14 @@ impl Controls for MacPlatform {
     }
 
     fn volume_steps(&mut self, steps: i32) {
+        // Without Accessibility the media keys are dropped, so fall back to
+        // writing the level directly (no HUD, same level change).
+        let direct = std::env::var("TRACKCONTROL_DIRECT_VOLUME").as_deref() == Ok("1")
+            || !system::accessibility_granted();
+        if direct {
+            audio::adjust_volume(steps);
+            return;
+        }
         let key = if steps > 0 {
             system::SOUND_UP
         } else {
@@ -84,14 +93,20 @@ impl Controls for MacPlatform {
     }
 
     fn backlight_steps(&mut self, steps: i32) {
+        // Paced key presses take up to half a second; they must not hold up the
+        // gesture loop, so they run on their own thread, one batch at a time.
+        static PACING: std::sync::Mutex<()> = std::sync::Mutex::new(());
         let key = if steps > 0 {
             system::ILLUMINATION_UP
         } else {
             system::ILLUMINATION_DOWN
         };
-        for _ in 0..steps.abs() {
-            system::post_media_key(key);
-            std::thread::sleep(std::time::Duration::from_millis(30));
-        }
+        std::thread::spawn(move || {
+            let _guard = PACING.lock();
+            for _ in 0..steps.abs() {
+                system::post_media_key(key);
+                std::thread::sleep(std::time::Duration::from_millis(30));
+            }
+        });
     }
 }
