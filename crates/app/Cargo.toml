@@ -1,0 +1,14 @@
+[package]
+name = "trackcontrol"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description = "Track Control: swipe the trackpad edges to change system settings"
+
+[[bin]]
+name = "trackcontrol"
+path = "src/main.rs"
+
+[dependencies]
+trackcontrol-core = { path = "../core" }
+trackcontrol-platform-macos = { path = "../platform-macos" }

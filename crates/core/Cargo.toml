@@ -1,0 +1,6 @@
+[package]
+name = "trackcontrol-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description = "Gesture recognizer, action mapping and settings for Track Control"

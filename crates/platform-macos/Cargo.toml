@@ -1,0 +1,9 @@
+[package]
+name = "trackcontrol-platform-macos"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description = "macOS backend: MultitouchSupport contacts, display brightness, media keys, scroll tap"
+
+[dependencies]
+trackcontrol-core = { path = "../core" }
