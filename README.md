@@ -1,3 +1,5 @@
+> **Branch `Rust-rewrite`** — rewriting the app in Rust: `crates/core` (recognizer, runner, settings), `crates/platform-macos` (contacts, brightness, media keys, scroll tap), `crates/app` (daemon). The Swift app stays in place until the Rust one reaches parity.
+
 <p align="center">
   <img src="Resources/AppIcon.png" width="200" alt="Track Control">
 </p>
